@@ -1,7 +1,7 @@
-import { Observable, of, interval, zip, from, fromEvent, fromEventPattern, range, throwError, concat, timer, iif, pipe, forkJoin, merge, race, empty, animationFrameScheduler, observable, Subscriber, } from 'rxjs';
+import { Observable, Subject, BehaviorSubject, ReadableStreamLike, of, interval, zip, from, fromEvent, fromEventPattern, range, throwError, concat, timer, iif, pipe, forkJoin, merge, race, empty, animationFrameScheduler, observable, Subscriber, ReplaySubject, } from 'rxjs';
 import { map, reduce, filter, take, catchError, mergeMap, count, max, min, buffer, throttleTime, mapTo, delay, bufferCount, bufferTime, bufferToggle, bufferWhen, expand, groupBy, toArray, switchMap, window, takeWhile, startWith, scan, mergeAll, debounce, debounceTime, distinct, elementAt, first, last, ignoreElements, sample, skip, throttle, tap, delayWhen, observeOn, timeInterval, timestamp, timeout, defaultIfEmpty, find, repeatWhen, findIndex, publish, share, }
     from "rxjs/operators";
-import { createImportSpecifier } from 'typescript';
+import { createImportSpecifier, textChangeRangeIsUnchanged } from 'typescript';
 import { resolve } from '../webpack.config';
 // var observable = Observable.create((observer: any) => {
 //     observer.next('Hello World!');
@@ -59,7 +59,7 @@ import { resolve } from '../webpack.config';
 // function* gen(spped: any) {
 //     let i = spped
 //     while (true) {
-//         yield i;k
+//         yield i; k
 //         i = 2 * i;
 //     }
 // }
@@ -226,13 +226,13 @@ import { resolve } from '../webpack.config';
 
 
 // const example = race(
-//     //emit every 1.5s  
+//     //emit every 1.5s
 //     interval(1500),
-//     //emit every 1s  
+//     //emit every 1s
 //     interval(1000).pipe(mapTo('1s won!')),
-//     //emit every 2s  
+//     //emit every 2s
 //     interval(2000),
-//     //emit every 2.5s  
+//     //emit every 2.5s
 //     interval(2500)
 // );
 // const ag = example.subscribe(val => console.log(val));
@@ -258,14 +258,14 @@ import { resolve } from '../webpack.config';
 
 
 // const sourceInterval = interval(1000);
-// //start first buffer after 5s, and every 5s after  
+// //start first buffer after 5s, and every 5s after
 // const startInterval = interval(1000);
-// //emit value after 3s, closing corresponding buffer  
+// //emit value after 3s, closing corresponding buffer
 // const closingInterval = (val: any) => {
 //     console.log(`Value ${val} emitted, starting buffer! Closing in 3s!`);
 //     return interval(1000);
 // };
-// //every 5s a new buffer will start, collecting emitted values for 3s then emitting buffered values  
+// //every 5s a new buffer will start, collecting emitted values for 3s then emitting buffered values
 // const bufferToggleInterval = sourceInterval.pipe(
 //     bufferToggle(startInterval, closingInterval)
 // );
@@ -290,15 +290,15 @@ import { resolve } from '../webpack.config';
 //         ert,
 //         getXYCoordinates
 // const oneSecondInterval = interval(1000);
-// //return an observable that emits value every 3 seconds  
+// //return an observable that emits value every 3 seconds
 // const threeSecondInterval = () => interval(2000);
-// //every three seconds, emit buffered values  
+// //every three seconds, emit buffered values
 // const bufferWhenExample = oneSecondInterval.pipe(
 //     bufferWhen(threeSecondInterval)
 // );
 // const subscribe = bufferWhenExample.subscribe(val =>
 //     console.log('Emitted Buffer values are: ', val)
-// );  
+// );
 //     ).subscribe(console.log);
 
 // const powersOfTwo = of(1, 2, 3, 4, 5).pipe(
@@ -359,7 +359,7 @@ import { resolve } from '../webpack.config';
 // const maptoint = interval(3000)
 // const maptoexe = maptoint.pipe(mapTo("This is the rxjs")).subscribe(val => console.log(val))
 
-// const id = document.getElementById("button") 
+// const id = document.getElementById("button")
 
 // const maptoint2 = fromEvent(id, "click")
 // const maptointexe = maptoint2.pipe(mapTo('This log is by me')).subscribe(val => console.log(val))
@@ -628,14 +628,14 @@ import { resolve } from '../webpack.config';
 // const emoty = of().pipe(defaultIfEmpty('Observable is .of() Empty! please try again'))
 //     .subscribe(val => console.log(val))
 // const status = document.getElementById('status');
-// // streams  
+// // streams
 // const clicks$ = fromEvent(document, 'click');
 // clicks$
 //     .pipe(
 //         find((event: any) => event.target.id === 'box'),
 //         mapTo('You have Found me'),
 //         startWith('Hey! Find me'),
-//         // reset when click outside box  
+//         // reset when click outside box
 //         repeatWhen(() =>
 //             clicks$.pipe(filter((event: any) => event.target.id !== 'box'))
 //         )
@@ -664,15 +664,15 @@ import { resolve } from '../webpack.config';
 
 // emit value in 1s
 
-// let observer = timer(1000).pipe(take(5), share())
-// const subscri_one = observer.subscribe(
+// let observert = timer(1000).pipe(take(5), share())
+// const subscri_one = observert.subscribe(
 //     x => console.log(`Value from Sub1 : ${x}`)
 // )
-// const subscri_two = observer.subscribe(
+// const subscri_two = observert.subscribe(
 //     x => console.log(`Value from Sub2 : ${x}`)
 // )
 // setTimeout(() => {
-//     const subsc = observer.subscribe(
+//     const subsc = observert.subscribe(
 //         x => console.log(`Value From Sub3 : ${x}`)
 //     )
 // }, 1000);
@@ -744,22 +744,114 @@ import { resolve } from '../webpack.config';
 
 
 
-const observer = new Observable(subscriber => {
-    subscriber.next(10);
-    subscriber.next(20);
-    subscriber.next(30);
-    setTimeout(() => {
-        subscriber.next(40)
-        subscriber.complete()
-    }, 1000);
+// const observer = new Observable(subscriber => {
+//     subscriber.next(10);
+//     subscriber.next(20);
+//     subscriber.next(30);
+//     setTimeout(() => {
+//         subscriber.next(40)
+//         subscriber.complete()
+//     }, 1000);
+// })
+
+// console.log(`This are value is just before subscribe`);
+
+// observer.subscribe(
+//     x => console.log(`This is Your values : ${x}`),
+//     err => console.log(`This is Your values : ${err}`),
+//     () => console.log(`Subscriber was Done successfully`)
+// )
+
+// console.log(`this is values just before subscribe`);
+
+// let all_nums = of(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 2, 3, 4, 5, 6, 7, 8, 9, 7, 8, 4, 5, 1, 2, 3, 6, 9, 8, 5, 4, 78, 2)
+// let finsl = all_nums.pipe(count())
+// let test = finsl.subscribe(x => console.log(`This is your value : ${x}`))
+// test.unsubscribe()
+
+// const observable1 = interval(0.1);
+// const observable2 = interval(0.1);
+// const subscription = observable1.subscribe(x => console.log('This is first: ' + x));
+// const childSubscription = observable2.subscribe(x => console.log('This is second: ' + x))
+// setTimeout(() => {
+//     // this will unsubscribe BOTH subscription and childSubscription
+//     subscription.unsubscribe();
+//     childSubscription.unsubscribe();
+// }, 1000);
+
+
+// let harsh = Rx.Observable.create((observer: any) => {
+//     observer.next(Math.round(Math.random() * 500000000 / 4));
+// });
+
+// const sub = new Rx.Subject();
+// // subscription 1
+// sub.subscribe((data: any) => {
+//     console.log(data);
+// });
+// // subscription 2
+// sub.subscribe((data: any) => {
+//     console.log(data);
+// });
+
+// harsh.subscribe(sub)
+
+// const subject_test = new Subject();
+// subject_test.subscribe(
+//     v => console.log(`From Subject : ${v}`)
+// );
+// subject_test.subscribe(
+//     v => console.log(`From Subject: ${v}`)
+// );
+
+// subject_test.error(new Error(`This is an error message`));
+// subject_test.complete()
+// subject_test.next('Good morning!!');
+
+// const subh = new BehaviorSubject(0); //inial value
+// subh.subscribe({
+//     next: (v) => console.log(`observable : ${v}`)
+// })
+
+// subh.next(1)
+// subh.next(2)
+// subh.subscribe({
+//     next: (v) => console.log(`observable2 : ${v}`)
+// })
+
+// subh.next(3)
+
+// const sub2 = new ReplaySubject(3)
+// sub2.subscribe({
+//     next: (v) => console.log(`observable : ${v}`)
+// })
+
+// sub2.next(1)
+// sub2.next(2)
+// sub2.next(3)
+// sub2.next(4)
+
+// sub2.subscribe({
+//     next: (v) => console.log(`observable : ${v}`)
+// })
+// sub2.next(5)
+
+
+
+
+const sub2 = new ReplaySubject(100, 500)
+sub2.subscribe({
+    next: (v) => console.log(`observable : ${v}`)
 })
 
-console.log(`This are value is just before subscribe`);
+let i = 1;
+setInterval(() => sub2.next(i++), 0.000002)
 
-observer.subscribe(
-    x => console.log(`This is Your values : ${x}`),
-    err => console.log(`This is Your values : ${err}`),
-    () => console.log(`Subscriber was Done successfully`)
-)
+setTimeout(() => {
+    sub2.subscribe({
+        next: (v) => console.log(`observableB : ${v}`)
+    })
+}, 0.1);
 
-console.log(`this is values just before subscribe`);
+
+
